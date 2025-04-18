@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+    </style>
+</head>
+
+<body>
+    <!-- <div style="width: 500px;height: 200px;overflow-y: scroll;background-color: aqua;float: right;" id="container">
+        <div style="width: 400px;height: 300px;background-color: blue;">
+
+        </div>
+    </div> -->
+    <div style="width: 500px;height: 1500px;overflow-y: scroll;background-color: aqua;float: right;">
+
+    </div>
+    <div style="width: 100px;height: 100px;background-color: blueviolet;position: fixed;left: 0;top: 0;" id="div">
+
+    </div>
+    <script>
+        // function uiTask(){
+        let scale = 1
+        console.log(document)
+        document.addEventListener('scroll', () => {
+            document.getElementById('div').style.transform = `scale(${scale += 2})`
+            console.log(scale)
+            let a = 0
+            for (let index = 0; index < 19999; index++) {
+                for (let index1 = 0; index1 < 19999; index1++) {
+                    a++
+                }
+            }   
+        }, { passive: false })
+            // document.getElementById('input').focus()
+        // }
+    </script>
+</body>
+
+</html>

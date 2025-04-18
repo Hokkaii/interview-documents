@@ -1,0 +1,8 @@
+注册事件：
+createRootImpl（创建一个fiberRoot对象） =》 listenToAllSupportedEvents ->listenToNativeEvent->addTrappedEventListener(addEventCaptureListener注册到组件上)->
+createEventListenerWrapperWithPriority(根据不同事件类型创建不同listener，一般分为三种DiscreteEvent（离散事件），UserBlockingEvent（用户阻塞）和ContinuousEvent（连续事件）)
+
+事件触发（离散事件为例）：
+会将executionContext置为EventContext
+
+待续吧。。

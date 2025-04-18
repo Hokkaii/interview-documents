@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+
+  <body>
+    <!-- <div id="hash">click to change hash</div> -->
+    <button id="history">click to change history</button>
+    <button onclick="history.back()">click me to back</button>
+    <script>
+      // window.onhashchange = e => {
+      //   console.log(e)
+      // }
+      // let hashValue = ''
+      // document.getElementById('hash').addEventListener('click', () => {
+      //   location.hash = hashValue += '1'
+      // })
+      // window.onpopstate = e => {
+      //   console.log(e)
+      // }
+      // document.getElementById('history').addEventListener('click', function() {
+      //   console.log(this)
+      //   history.pushState({ page: 1 }, "", "?page=1");
+      // })
+      const chain = [
+        (next) => (action) => {
+          console.log("第1层中间件", action);
+          return next(action + "1");
+        },
+        (next) => (action) => {
+          console.log("第2层中间件", action);
+          return next(action + "2");
+        },
+        (next) => (action) => {
+          console.log("第3层中间件", action);
+          return next(action + "3");
+        },
+        (next) => (action) => {
+          console.log("根dispatch", action);
+          return next(action + "gen");
+        },
+      ];
+      const dispatch = (action) => {
+        console.log(action);
+      };
+      console.log(
+        chain.reduce((a, b) => {
+          return (...args) => {
+            return a(b(...args));
+          };
+        })(dispatch)('data')
+      );
+    </script>
+  </body>
+</html>

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        #div {
+            width: 300px;
+            height: 300px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="div">
+
+    </div>
+    <button onclick="changeValue()">click</button>
+    <button onclick="changeValue1()">click1</button>
+
+    <script>
+        // let timer
+        // function changeValue() {
+        //     let time = new Date().getTime()
+        //     const func = () => {
+        //         timer = setTimeout(() => {
+        //             console.log(new Date().getTime() - time)
+        //             time = new Date().getTime()
+        //             func()
+        //         }, 1000);
+        //     }
+        //     func()
+        // }
+        function changeValue1() {
+            let a = 0
+            for (let index = 0; index < 100000; index++) {
+                for (let index = 0; index < 100000; index++) {
+                    a++
+                }
+            }
+            console.log(a)
+        }
+        function changeValue() {
+            let time = new Date().getTime()
+            const func = () => {
+                window.requestAnimationFrame(() => {
+                    console.log(new Date().getTime() - time)
+                    time = new Date().getTime()
+                    func()
+                }, 1000);
+            }
+            func()
+        }
+    </script>
+</body>
+
+</html>

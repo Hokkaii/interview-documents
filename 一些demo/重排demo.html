@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <!-- <style>
+        div {
+            font-size: 30px;
+            position: relative;
+        }
+        .easy {
+            width: 200px;
+            height: 200px;
+            background: lightgoldenrodyellow;
+        }  
+        .hard {
+            width: 200px;
+            height: 200px;
+            background: red; 
+            transition: 3s all;
+        }
+    </style> -->
+</head>
+<body>
+    <!-- <button id="some-element-you-want-to-animate">这是动画</button> -->
+    
+    <div class="hard" id="box">
+        123
+    </div>
+    <script>
+        let box = document.querySelector('#box'),
+        config = { attributes: true };
+
+        /*
+        * 在我们创建MutationObserver对象的时候可以传入一个函数，
+        * 
+        */
+        let observer = new MutationObserver(mutations => {
+            console.log(mutations) 
+        // => 返回一个我们监听到的MutationRecord对象
+        // MutationRecord对象 是我们每修改一个就会在数组里面追加一个
+        })
+
+        observer.observe(box, config) // 监听的 元素 和 配置项
+        box.setAttribute('name','张三')// 修改属性
+        box.style.background = 'black'// 修改样式
+        console.log(box)
+    </script>
+    <button id="button">click</button>
+   
+    <!-- <script>
+        const element = document.getElementById('some-element-you-want-to-animate');
+        let start;
+        function step(timestamp) {
+            console.log('requestAnimationFrame')
+            if (start === undefined)
+                start = timestamp;
+            const elapsed = timestamp - start;
+
+            //这里使用`Math.min()`确保元素刚好停在200px的位置。
+            // element.style.transform = 'translateX(' + Math.min(0.1 * elapsed, 200) + 'px)';
+
+            if (elapsed < 2000) { // 在两秒后停止动画
+                window.requestAnimationFrame(step);
+            }
+        }
+
+        function long(div) {
+            var result = 0
+            for (var i = 0; i<1000; i++) {
+                for (var j = 0; j<1000; j++) {
+                    for (var k = 0; k<1000; k++) {
+                        result = result + i+j+k
+                    }
+                } 
+            }
+            div.classList.add('hard')
+        }
+        document.getElementById('button').onclick= ()=> {
+            console.log('here')
+            // var body = document.querySelector('body');
+            // var div = document.createElement('div');
+            // body.appendChild(div)
+            // // div.innerText='123456'
+            // div.classList.add('easy')
+            // div.clientWidth 
+            setTimeout(()=>{
+                console.log('time out')
+            }, 0)
+            const div = document.getElementById('div')
+            div.$_1a_1 = 'bro hu'
+            for (var i = 0; i<10000; i++) {
+                div.style.width = i / 10+ "px"
+                // div.clientWidth
+                for (var j = 0; j<1000; j++) {
+                   
+                    // for (var k = 0; k<1000; k++) {
+                        
+                    // }
+                } 
+            }
+            // div.classList.add('hard')
+            // div.style.left = "10px";
+            // console.log(div.offsetLeft);
+            // div.style.top = "10px";
+            // console.log(div.offsetTop);
+            // div.style.width = "20px";
+            // console.log(div.offsetWidth);
+            // div.style.height = "20px";
+            // console.log(div.offsetHeight);
+
+
+            // div.classList.add('easy')
+            // console.log(div.clientWidth)
+            // // long(div)
+            // div.classList.add('hard')
+
+           
+            // div.innerText = 'e'
+            // div.clientLeft;
+            // div.innerText = 'hard'
+
+            // setTimeout(()=>{
+            //     div.classList.add('hard')
+            // },0)
+        }
+        
+        
+       
+       
+    </script> -->
+</body>
+</html>

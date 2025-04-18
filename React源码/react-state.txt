@@ -1,0 +1,50 @@
+setState的主要实现过程：
+
+在class组件中调用setState：
+1.enqueueSetState=》会创建update对象，
+2.将这个update对象放入fiber.updateQueue（enqueueUpdate）
+3.从fiber找到root（保证方法能从根节点对fiber树进行深度优先遍历）
+4.然后发起一个调度，调度方法会在render阶段被执行（performSyncWorkOnRoot 或 performConcurrentWorkOnRoot）（由调度中心执行的异步任务）
+5. 在render阶段的beginWork阶段会执行processUpdateQueue，计算出新的state存放在memoizedState中，同时在beginWork也会执行updateClassComponent=》
+finishClassComponent=》instance.render（class组件的render生命周期），因此在render生命周期函数中可以拿到最新的state。
+
+在function组件中调用useState：todo
+
+
+
+
+什么情况是异步？为什么是异步？
+
+通常为"异步"，一定条件的legacy模式下可表现为"同步"。
+
+react钩子事件和合成事件中触发是异步。
+setState一定触发 scheduleUpdateOnFiber，legacy模式下判断是不是异步的唯一标准就是scheduleUpdateOnFiber中的executionContext === NoContext。
+在合成事件中进入executionContext === ，在钩子函数（cdm，cdu）中 executionContext === commitContext（commitRoot后是commit阶段），
+因此都不会马上清空更新队列。
+
+什么情况是同步，为什么是同步？
+
+原生事件或异步函数。
+原生事件是直接给dom添加监听事件，executionContext不会因此变为DiscreteEventContext，因此会立即清空更新队列。
+异步函数例如setTimeout：setTimeout在当前事件队列结束后下个事件队列再执行，此时executionContext一定为NoContext。
+
+
+
+
+
+setState的批量更新问题：
+
+setState =》 enqueueSetState =》scheduleUpdateOnFiber，enqueueUpdate =》ensureRootIsScheduled
+
+在enqueueSetState中会创建update对象，update的lane，lane取值于requestUpdateLane（根据不同模式返回不同的LanePriority，LanePriority指优先级）
+
+每次执行enqueueUpdate都会把本次setState添加到fiber.updateQueue中，合并发生在render的beginWork（processUpdateQueue）阶段，即便这个setState最终没有注册成功调度任务，这个添加过程仍然生效
+
+在scheduleUpdateOnFiber中，如果该任务会执行ensureRootIsScheduled注册调度任务
+如果连续的setState：
+第一次的setState时，在ensureRootIsScheduled中，root.callbackPriority和root.callbackNode会被赋值为‘当前setState对应update的优先级’和‘当前setState对应update的调度任务’，
+用于和后续再进入ensureRootIsScheduled作比较。
+第二次setState再次进入ensureRootIsScheduled，root.callbackNode已经存在，证明有调度任务被注册过，进入优先级比较，如果‘当前setState对应update的优先级’
+与root.callbackPriority相同，那么将不会为当前setState注册调度任务。
+
+
