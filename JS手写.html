@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>手写常见JS</title>
+  <script>
+    // 1. 有并行限制的 Promise 调度器
+    // addTask(1000,"1");
+    // addTask(500,"2");
+    // addTask(300,"3");
+    // addTask(400,"4");
+    // 的输出顺序是：2 3 1 4
+    // 整个的完整执行流程：
+    // 一开始1、2两个任务开始执行
+    // 500ms时，2任务执行完毕，输出2，任务3开始执行
+    // 800ms时，3任务执行完毕，输出3，任务4开始执行
+    // 1000ms时，1任务执行完毕，输出1，此时只剩下4任务在执行
+    // 1200ms时，4任务执行完毕，输出4
+    // class Scheduler {
+    //     constructor(limit) {
+    //         this.limit = limit
+    //         this.taskList = []
+    //         this.runCounts = 0
+    //     }
+    //     addTask =(time, printValue) => {
+    //         const task =()=>{
+    //             return new Promise((resolve,reject)=>{
+    //                 setTimeout(() => {
+    //                     resolve(printValue)
+    //                 }, time);
+    //             })
+    //         }
+    //         this.taskList.push(task)
+    //     }
+    //     run() {
+    //         this.taskList.forEach(item=>this.runItem())
+    //     }
+    //     runItem() {
+    //         if(!this.taskList||!this.taskList.length||(this.runCounts>this.limit)) return
+    //         this.runCounts++
+    //         this.taskList.shift()().then(res=>{
+    //             console.log(res)
+    //             this.runCounts--
+    //             this.runItem()
+    //         })
+    //     }
+    // }
+    // const scheduler = new Scheduler(2);
+    // const addTask = (time, order) => {
+    //     scheduler.addTask(time, order);
+    // };
+    // addTask(1000, "1");
+    // addTask(500, "2");
+    // addTask(300, "3");
+    // addTask(400, "4");
+    // scheduler.run();
+
+    // 2. apply重写
+    // Function.prototype.myAppply = function(ctx, ...args) {
+    //     if(ctx ===null || ctx===undefined){ctx=window}
+    //     const fn = Symbol()
+    //     ctx[fn] = this
+    //     ctx[fn](args)
+    //     delete  ctx[fn]
+    // }
+    // const obj ={
+    //     a:1,
+    //     run: function(run){
+    //         console.log(this)
+    //         this.run =run
+    //         console.log(this.a)
+    //     }
+    // }
+    // const obj1 = {
+    //     a:2
+    // }
+    // obj.run.myAppply(obj1)
+
+    // 3. 重写bind
+    // const obj ={
+    //     a:1,
+    //     run: function(run){
+    //         console.log(this.a)
+    //     }
+    // }
+    // const obj1 = {
+    //     a:2
+    // }
+    // Function.prototype.myBind = function (context, ...args) {
+    //   // 1. 确定要绑定的对象，即最终谁来调用函数，命名为new_this；若没有传入要绑定的对象, 默认绑定window对象
+    //   context = context || window
+    //   // 2. 把原函数(即this)用一个fn变量保存一下，这样更能看出它表示一个函数 
+    //   const fn = new Symbol();
+    //   context[fn] = this
+    //   return function newFn(...fnArgs) {
+    //     let res
+    //     // 3.要考虑新函数是不是会当作构造函数
+    //     if (this instanceof newFn) {
+    //       // 如果是构造函数则调用new 并且合并参数args，fnArgs
+    //       res = new fn(...args, ...fnArgs)
+    //     } else {
+    //       res = context[fn](...args, ...fnArgs)
+    //     }
+    //     return res
+    //   }
+    // }
+    // obj.run.myBind(obj1)()
+    // const B = obj.run.myBind(obj1)
+    // const b = new B('b')
+
+    // 4. 深克隆
+    // function deepClone(obj, hash = new WeakMap()) {
+    //     // 用一个WeakMap记录不同属性，如果该属性已经存在，直接取出返回即可
+    //     if(typeof obj !== 'object' || obj === null) {
+    //         return obj
+    //     }
+    //     if(hash.has(obj)) {
+    //         console.log('here', hash.get(obj))
+    //         return hash.get(obj)
+    //     }
+    //     const target = Array.isArray(obj) ? [] : {}
+    //     hash.set(obj, target);
+    //     Reflect.ownKeys(obj).forEach(key => {
+    //         if(typeof obj[key] === 'object' && obj[key] !== null){
+    //             target[key] = deepClone(obj[key], hash)
+    //         } else{
+    //             target[key] = obj[key]
+    //         }
+    //     });
+    //     return target
+    // }
+    // const a = {a : 1}
+    // const obj = { a: a, a1: a}
+    // var obj1 = deepClone(obj);
+    // console.log(obj1);
+    // function deepClone(obj) {
+    //     return Object.defineProperties({}, Object.getOwnPropertyDescriptors(obj));
+    // }
+
+    // 5. instanceOf冲写
+    // function myInstanceOf(left, right) {
+    //     console.log('run here')
+    //     while(true){
+    //         if(left === null || left === undefined) return false
+    //         if(right === null || right === undefined) {
+    //             throw new Error('right cant be null or undefined')
+    //         }
+    //         if(left.__proto__ === right.prototype){
+    //             return true
+    //         }
+    //         // 原型链由__proto__串联
+    //         left = left.__proto__
+    //     }
+    // }
+    // console.log(myInstanceOf('1', Number))
+
+    // 6. 函数柯里化
+    // const add = (a, b, c) => a + b + c;
+    // const a = currying(add, 1);
+    // console.log(a(2,3))
+    // function currying(func, ...args) {
+    //     // 虚参长度
+    //     const theLength = func.length
+    //     let allArgs = [...args]
+    //     const res= (...newArgs) => {
+    //         allArgs = [...allArgs,...newArgs]
+    //         if(theLength === allArgs.length){
+    //             return func(...allArgs)
+    //         } else {
+    //             return res
+    //         }
+    //     }
+    //     return res
+    // }
+    // const add = (a, b, c) => {
+    //     console.log(a,b,c)
+    //     return a + b + c;
+    // }
+    // const func = currying(add)
+    // console.log(func(1)(4)(5))
+
+    // 7.节流
+    // function throttle(fun, time) {
+    //     let timer = null
+    //     return function(...args){
+    //         if(!timer) {
+    //             timer = setTimeout(()=> {
+    //                 func.apply(this, args)
+    //                 clearTimeout(timer)
+    //             }, time)
+    //         }
+    //     }
+    // }
+
+    // 8.防抖
+    // function debounce(fn, time) {
+    //     let timer = null
+    //     return function(...args) {
+    //         if(timer) clearTimeout(timer)
+    //         timer = setTimeout(()=>{
+    //             fn.apply(this, args)
+    //         }, time)
+    //     }
+    // }
+
+    // 9. 手写Promise.all
+    // function myPromiseAll(promises) {
+    //     return new Promise(function(resolve, reject) {
+    //         if(!Array.isArray(promises)){
+    //             throw new TypeError(`argument must be a array`)
+    //         }
+    //         var resolvedCounter = 0;
+    //         var promiseNum = promises.length;
+    //         var resolvedResult = [];
+    //         for (let i = 0; i < promiseNum; i++) {
+    //             promises[i].then(value=>{
+    //                 resolvedCounter++;
+    //                 resolvedResult[i] = value;
+    //                 if (resolvedCounter == promiseNum) {
+    //                     return resolve(resolvedResult)
+    //                 }
+    //             },error=>{
+    //                 return reject(error)
+    //             })
+    //         }
+    //     })
+    // }
+    // let p1 = new Promise(function (resolve, reject) {
+    //     setTimeout(function () {
+    //         resolve(1)
+    //     }, 1000)
+    // })
+    // let p2 = new Promise(function (resolve, reject) {
+    //     setTimeout(function () {
+    //         resolve(2)
+    //     }, 2000)
+    // })
+    // let p3 = new Promise(function (resolve, reject) {
+    //     setTimeout(function () {
+    //         resolve(3)
+    //     }, 3000)
+    // })
+    // myPromiseAll([p3, p1, p2]).then(res=>console.log(res)).catch(err=>console.log(err))
+
+    // 10.手写Promise
+    // （1）实例化promise的时候传入resolve和reject。
+    // （2）resolve或reject执行的时候把then的函数集合数组（resolvedCallbacks）全部异步的执行；
+    // 这是为防止实例化时同步的resolve值（此时resolve在then之前，拿不到完整的的resolvedCallbacks），因此要等then添加完之后再执行resolvedCallbacks（setTimeout）。
+    // function MyPromise(func) {
+    //     let self = this
+    //     this.state = 'pending'
+    //     this.value = undefined
+    //     this.resolvedCallbacks = [];
+    //     this.rejectedCallbacks = [];
+    //     function resolve(value) {
+    //         if(self.state === 'pending') {
+    //             self.state = 'success'
+    //             self.value = value
+    //             setTimeout(() => {
+    //                 self.resolvedCallbacks.forEach(callback => {
+    //                     callback(self.value)
+    //                 });
+    //             })
+    //         }
+
+    //     }
+    //     function reject (err) {
+    //         if(self.state === 'pending') {
+    //             self.state = 'fail'
+    //             self.value = err
+    //             setTimeout(() => {
+    //                 self.rejectedCallbacks.forEach(callback => {
+    //                     callback(self.value)
+    //                 });
+    //             })
+    //         }
+    //     }
+    //     try {
+    //         func(resolve, reject)
+    //     } catch (error) {
+    //         consoe.log(error)
+    //         reject(error);
+    //     }
+    // }
+    // // then返回一个promise，通过onFulfilled和this.value获取到promise需要resolve的值，如果这个值是promise对象，则立即获取这个promsie的产出，并把它resolve，这样下一个then就可以正确获取到值了
+    // MyPromise.prototype.then = function(onFulfilled, onRejected) {
+    //     return new MyPromise((resolve, reject)=> {
+    //         const fulfilled  = () => {
+    //             try {
+    //                 const result = onFulfilled(this.value); // 承前
+    //                 result instanceof MyPromise ? result.then(resolve, reject) : resolve(result); //启后
+    //             } catch(err) {
+    //                 reject(err)
+    //             }
+    //         }
+    //         const rejected  = () => {
+    //             try {
+    //                 const result = onRejected(this.value); // 承前
+    //                 result instanceof MyPromise ? result.then(resolve, reject) : reject(result); //启后
+    //             } catch(err) {
+    //                 reject(err)
+    //             }
+    //         }
+    //         if (this.state === 'pending') {
+    //             this.resolvedCallbacks.push(fulfilled);
+    //             this.rejectedCallbacks.push(rejected);
+    //         }
+    //         if (this.state === 'success') {
+    //             fulfilled();
+    //         }
+    //         if (this.state === 'fail') {
+    //             rejected();
+    //         }
+    //     })
+    // }
+    // MyPromise.prototype.catch = function (onRejected) {
+    //     return this.then(undefined, onRejected)
+    // }
+    // const myPromise = new Promise((resolve, reject)=>{
+    //     setTimeout(() => {
+    //         resolve('hello mypromise')
+    //     }, 1000);
+    // })
+    // myPromise.then(res=> {
+    //     console.log(res)
+    //     return res + '!!'
+    // }).then(res => {
+    //     return new MyPromise((resolve, reject)=> {
+    //         setTimeout(() => {
+    //             resolve(res +'??')
+    //         }, 1000);
+    //     })
+    // }).then(res => {
+    //     console.log(res)
+    // }).catch(err=>{
+    //     console.log(err)
+    //     return '123'
+    // }).catch(err=>console.log(err))
+
+    // 11.  generator异步编程
+    //     const api = (params) =>{
+    //         return new Promise(resolve => {
+    //             setTimeout(() => {
+    //                 resolve(params)
+    //             }, 1000);
+    //         })
+    //     }
+    //     function run(gen){
+    //         var g = gen();
+    //         function next(data) {
+    //             console.log(data)
+    //             var result = g.next(data);
+    //             if (result.done) return result.value;
+    //             result.value.then(function(data) {
+    //                 next(data);
+    //             });
+    //         }
+    //         next();
+    //     }
+    //    function* gen() {
+    //        yield api('123')
+    //        yield api('456')
+    //        return api('789')
+    //    }
+    //    run(gen)
+
+    // 12. new
+    // function myNew(Cons, ...args) {
+    //     const obj = {}
+    //     obj.__proto__ = Cons.prototype
+    //     const res = Cons.apply(obj, args)
+    //     return typeof res === 'object' ? res : obj
+    // }
+    // A.prototype.say = function(){
+    //     console.log(this.a)
+    // }
+    // function A(a){
+    //     this.a =a
+    //     return {b:2}
+    // }
+    // console.log(myNew(A,1,2,3), new A(1,2,3))
+    // new A(1,2,3)
+
+    // 13. compose
+    function fn1(x) {
+      console.log(1);
+      return x + 1;
+    }
+    function fn2(x) {
+      console.log(2);
+      return x + 2;
+    }
+    function fn3(x) {
+      console.log(3);
+      return x + 3;
+    }
+    function fn4(x) {
+      console.log(4);
+      return x + 4;
+    }
+
+    function compose(...fnList) {
+      return fnList.reduce((prev, cur) => (...args) => {
+        prev(cur(args));
+      });
+    }
+    const a = compose(fn1, fn2, fn3, fn4);
+    console.log(a(1)); // 1+4+3+2+1=11
+
+    //  14.add方法 add(1)(2)(3)()=6 add(1,2,3)(4)()=10
+    //   function add(...args) {
+    //     if (!args.length) return;
+    //     let allArgs = [...args];
+    //     function fn(...newArgs) {
+    //       allArgs = [...allArgs, ...newArgs];
+    //       if (!newArgs.length) {
+    //         return allArgs.reduce((prev, cur) => prev + cur);
+    //       } else {
+    //           return fn
+    //       }
+    //     }
+    //     return fn;
+    //   }
+    //   console.log(add(1,2,3)(4)())
+  </script>
+</head>
+
+<body></body>
+
+</html>
